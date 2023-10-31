@@ -1,3 +1,5 @@
+import "./style.css";
+
 const urls = [
   "/public/assets/tile1.png",
   "/public/assets/tile2.png",
@@ -8,98 +10,73 @@ const urls = [
   "/public/assets/tile7.png",
 ];
 
-let currentTile = 0; // index referring to Tile
+let currentTile = 0;
 let clicked = false;
 
-const svg: HTMLElement = create("svg");
-const svgContainer: HTMLElement | null =
-  document.getElementById("svgContainer");
+const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGSVGElement;
+const svgContainer = document.getElementById("svgContainer");
 
-if (svgContainer != null) {
-  svg.setAttribute("width", "320");
-  svg.setAttribute("height", "400");
+if (svgContainer) {
+  svg.setAttribute("width", "640"); // Updated size
+  svg.setAttribute("height", "800"); // Updated size
   svgContainer.appendChild(svg);
 }
 
-createGrid(32, 32);
-createPalette();
+svg.addEventListener('mouseup', () => { clicked = false; });
 
-function create(elementNone: any) {
-  return document.createElementNS("http://www.w3.org/2000/svg", elementNone);
+createGrid(32, 32, 20, 20); // Updated tile size to 20x20
+createPalette(20, 20); // Updated palette tile size to 20x20
+
+function create(tagName: string): Element {
+  return document.createElementNS("http://www.w3.org/2000/svg", tagName);
 }
 
-function createGrid(width: number, height: number) {
+function updateTile(tile: Element, x: string, y: string, width: string, height: string) {
+  tile.setAttributeNS(null, "x", x);
+  tile.setAttributeNS(null, "y", y);
+  tile.setAttributeNS(null, "width", width);
+  tile.setAttributeNS(null, "height", height);
+  tile.setAttributeNS(null, "visibility", "visible");
+  tile.setAttributeNS("http://www.w3.org/1999/xlink", "href", urls[currentTile]);
+}
+
+function createGrid(width: number, height: number, tileWidth: number, tileHeight: number) {
   for (let i = 0; i < width; i++) {
     for (let j = 0; j < height; j++) {
       const tile = create("image");
-
-      // updating grid
-      tile.addEventListener("mousedown", function (this: any) {
+      
+      tile.addEventListener("mousedown", function (this: Element) {
         clicked = true;
-        tile.setAttributeNS(null, "x", this.getAttribute("x"));
-        tile.setAttributeNS(null, "y", this.getAttribute("y"));
-        tile.setAttributeNS(null, "width", this.getAttribute("width"));
-        tile.setAttributeNS(null, "height", this.getAttribute("height"));
-        tile.setAttributeNS(null, "visibility", "visible");
-        tile.setAttributeNS(
-          "http://www.w3.org/1999/xlink",
-          "href",
-          urls[currentTile]
-        );
+        updateTile(this, this.getAttribute("x")!, this.getAttribute("y")!, tileWidth.toString(), tileHeight.toString());
       });
 
-      tile.addEventListener("mouseover", function (this: any) {
-        if (clicked == true) {
-          tile.setAttributeNS(null, "x", this.getAttribute("x"));
-          tile.setAttributeNS(null, "y", this.getAttribute("y"));
-          tile.setAttributeNS(null, "width", this.getAttribute("width"));
-          tile.setAttributeNS(null, "height", this.getAttribute("height"));
-          tile.setAttributeNS(null, "visibility", "visible");
-          tile.setAttributeNS(
-            "http://www.w3.org/1999/xlink",
-            "href",
-            urls[currentTile]
-          );
+      tile.addEventListener("mouseover", function (this: Element) {
+        if (clicked) {
+          updateTile(this, this.getAttribute("x")!, this.getAttribute("y")!, tileWidth.toString(), tileHeight.toString());
         }
       });
-      tile.addEventListener("mouseup", function (this: any) {
-        clicked = false;
-      });
 
-      // initializing grid
-      tile.setAttributeNS(null, "x", i * 10);
-      tile.setAttributeNS(null, "y", j * 10);
-      tile.setAttributeNS(null, "width", 10);
-      tile.setAttributeNS(null, "height", 10);
-      tile.setAttributeNS(null, "visibility", "visible");
-      tile.setAttributeNS(
-        "http://www.w3.org/1999/xlink",
-        "href",
-        urls[currentTile]
-      );
-
-      svg.append(tile);
+      updateTile(tile, String(i * tileWidth), String(j * tileHeight), tileWidth.toString(), tileHeight.toString());
+      svg.appendChild(tile);
     }
   }
 }
 
-function createPalette() {
+function createPalette(tileWidth: number, tileHeight: number) {
   for (let k = 0; k < urls.length; k++) {
     const color = create("image");
 
-    // selector
     color.addEventListener("click", function () {
       currentTile = k;
     });
 
-    // initializing selectable tiles
-    color.setAttributeNS(null, "x", k * 37);
-    color.setAttributeNS(null, "y", 320 + 20);
-    color.setAttributeNS(null, "width", 35);
-    color.setAttributeNS(null, "height", 35);
+    color.setAttributeNS(null, "x", String(k * (tileWidth + 2)));
+    color.setAttributeNS(null, "y", String(640 + 20)); // Position below the grid
+    color.setAttributeNS(null, "width", tileWidth.toString());
+    color.setAttributeNS(null, "height", tileHeight.toString());
     color.setAttributeNS(null, "visibility", "visible");
     color.setAttributeNS("http://www.w3.org/1999/xlink", "href", urls[k]);
 
-    svg.append(color);
+    svg.appendChild(color);
   }
 }
